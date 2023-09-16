@@ -11,6 +11,22 @@ module.exports = (sequelize) => {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4
     },
+    stock:{
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    totalPrice:{
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    purchase_date:{
+      type: DataTypes.UUID,
+      allowNull: false,
+    },
+    bill:{
+      type: DataTypes.UUID,
+      allowNull: false,
+    },  
 
   },
 
