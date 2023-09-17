@@ -3,7 +3,9 @@ const router = Router();
 
 const products = require ('./productsRouter');
 
-router.use("/productos", products);
+router.use("/products", products);
+router.use("/clients", products);
+router.use("/sales", products);
 
 
 module.exports = router;
