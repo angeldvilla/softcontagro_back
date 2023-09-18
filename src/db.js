@@ -41,7 +41,11 @@ sequelize.models = Object.fromEntries(capsEntries);
 const {Client, Product, Sales} = sequelize.models;
 
 // Aca vendrian las relaciones
-// Product.hasMany(Reviews);
+Client.hasMany(Sales, { foreignKey: "clientId" });
+Sales.belongsTo(Client, { foreignKey: "clientId" });
+
+Product.belongsToMany(Sales, { through: "SalesxProduct" });
+Sales.belongsToMany(Product, { through: "SalesXProduct" });
 /* ------------------------------------------------------------- */
 
 module.exports = {
