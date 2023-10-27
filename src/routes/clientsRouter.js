@@ -1,9 +1,8 @@
-const { Router } = require ('express');
-const { allClientesHandler } = require ('../handlers/clientsHandler');
+const { Router } = require("express");
+const { allClientesHandler } = require("../handlers/clientsHandler");
 
 const clientsRouter = Router();
 
-clientsRouter.get("/allClients" , allClientsHandler);
-
+clientsRouter.get("/allClients", allClientesHandler);
 
 module.exports = clientsRouter;
