@@ -1,10 +1,8 @@
 const { Router } = require("express");
 const router = Router();
-/* const recipesRoutes = require("./recipesRoutes");
-const dietsRoutes = require("./dietsRoutes"); */
+const authRoutes = require("./authRoutes");
 
 //rutas de la api
-/* router.use("/recipes", recipesRoutes);
-router.use("/diets", dietsRoutes); */
+router.use("/auth", authRoutes);
 
 module.exports = router;

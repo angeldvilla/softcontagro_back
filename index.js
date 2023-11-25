@@ -4,6 +4,6 @@ const portListen = 3001;
 /* ------------------------------------------------------------- */
 
   server.listen(portListen, () => {
-    console.log(`%s listening at ${portListen}`); 
+    console.log(`servidor corriendo en el puerto ${portListen}`); 
   });
 /* ------------------------------------------------------------- */
