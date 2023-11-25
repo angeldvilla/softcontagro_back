@@ -6,7 +6,7 @@ const db = mysql.createPool({
   host: "localhost",
   user: "root",
   password: "",
-  database: "softcontagro",
+  database: "softcontagro2",
   port: 3306,
   waitForConnections: true,
   connectionLimit: 10,
