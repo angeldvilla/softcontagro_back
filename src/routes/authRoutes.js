@@ -1,10 +1,9 @@
 const { Router } = require("express");
 const bcrypt = require("bcrypt");
 const db = require("../db");
-const { generateToken } = require("../utils/authUtils");
 const authRoutes = Router();
 const { authUser } = require("../handlers/autHandler");
-
+const { verifyTokenMiddleware, clearToken } = require("../utils/authUtils");
 // Registro de usuario
 authRoutes.post("/register", async (req, res) => {
   try {
@@ -19,8 +18,8 @@ authRoutes.post("/register", async (req, res) => {
     const hashedPassword = await bcrypt.hash(contraseña, 10);
 
     // Insertar usuario en la base de datos
-      await db.execute(
-      "INSERT INTO usuarios (nombre_completo, cedula, telefono, nombre_usuario, correo_electronico, contraseña, imagen_url, estado) VALUES (?, ?, ?, ? ,? ,?, 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png', 1)",
+    const [result] = await db.execute(
+      "INSERT INTO usuarios (nombre_completo, cedula, telefono, nombre_usuario, correo_electronico, contraseña, imagen_url, estado) VALUES (?, ?, ?, ?, ?, ?, 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png', 1)",
       [
         nombre_completo,
         cedula,
@@ -30,10 +29,24 @@ authRoutes.post("/register", async (req, res) => {
         hashedPassword,
       ]
     );
-    res.status(201).json({ message: "Usuario registrado exitosamente" });
+
+    // Obtener el ID del usuario insertado
+    const userId = result.insertId;
+
+    // Insertar la relación entre usuario y rol en la tabla usuarios_roles
+    await db.execute(
+      ` 
+      INSERT INTO usuarios_roles (usuario_id, rol_id) VALUES (?, 2)
+      `,
+      [userId]
+    );
+
+    return res
+      .status(201)
+      .json({ code: 200, message: "Usuario registrado exitosamente" });
   } catch (error) {
     console.error("Error en el registro:", error);
-    res.status(500).json({ error: "Error en el servidor" });
+    return res.status(500).json({ error: "Error en el servidor" });
   }
 });
 
@@ -63,6 +76,14 @@ authRoutes.post("/login", async (req, res) => {
       message: "Error en el servidor",
     });
   }
+});
+
+authRoutes.post("/logout", verifyTokenMiddleware, (req, res) => {
+  clearToken(res);
+  return res.status(200).json({
+    code: 200,
+    message: "Sesión cerrada exitosamente",
+  });
 });
 
 /* authRoutes.get("/protected", verifyTokenMiddleware, (req, res) => {
