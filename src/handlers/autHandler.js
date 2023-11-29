@@ -1,26 +1,37 @@
-const { postLogin } = require("../controllers/authController");
+const { getAuthentication } = require("../controllers/authController");
+const { generateToken } = require("../utils/authUtils");
 
 const authUser = async (username, password) => {
-  if (!username || !password) {
-    return {
-      code: 400,
-      message: "El usuario y la contraseña son obligatorios",
-    };
-  }
+  try {
+    if (!username || !password) {
+      return {
+        code: 400,
+        message: "El usuario y la contraseña son obligatorios",
+      };
+    }
 
-  if (!credentials) {
-    return {
-      code: 404,
-      message: "Los datos ingresados no coinciden, intente de nuevo",
-    };
-  }
+    const credentials = await getAuthentication(username, password);
 
-  const credentials = await postLogin(username, password);
-  return {
-    code: 200,
-    message: "Inicio de sesión exitoso",
-    data: credentials,
-  };
+    if (!credentials) {
+      return {
+        code: 404,
+        message: "Los datos ingresados no coinciden, intente de nuevo",
+      };
+    }
+
+    // Generar token JWT
+    const token = generateToken(credentials.ID, credentials.Usuario, [
+      credentials.Rol,
+    ]);
+
+    return {
+      code: 200,
+      message: "Inicio de sesión exitoso",
+      token: token,
+    };
+  } catch (error) {
+    console.error("Error en la autenticación:", error);
+  }
 };
 
 module.exports = { authUser };
