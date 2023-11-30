@@ -92,7 +92,7 @@ const deleteProduct = async (req, res) => {
   try {
     const id = req.params;
 
-    const productRemoved = await deleteProduct(id);
+    const productRemoved = await removeProduct(id);
 
     if (productRemoved?.code === 200) {
       return res.status(productRemoved?.code).json({

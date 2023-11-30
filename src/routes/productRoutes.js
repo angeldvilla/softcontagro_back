@@ -9,7 +9,7 @@ const {
 
 productRoutes.get("/", getProducts);
 
-productRoutes.post("/newProduct", createProduct);
+productRoutes.post("/add", createProduct);
 
 productRoutes.put("/:id", editProduct);
 

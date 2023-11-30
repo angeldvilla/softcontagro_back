@@ -14,7 +14,8 @@ const getAllProducts = async () => {
       data: product,
     };
   } catch (error) {
-    console.error("Error en la consulta de perfil:", error);
+    console.error("Error en la consulta de productos:", error);
+    return { code: 500, message: "Error en el servidor" };
   }
 };
 

@@ -12,6 +12,7 @@ const getProfileUser = async (userId) => {
     return profile[0];
   } catch (error) {
     console.error("Error en la consulta de perfil:", error);
+    return { code: 500, message: "Error en el servidor" };
   }
 };
 
@@ -37,6 +38,7 @@ const updateProfileUser = async (userId, profile) => {
     };
   } catch (error) {
     console.error("Error en la actualización de perfil:", error);
+    return { code: 500, message: "Error en el servidor" };
   }
 };
 
@@ -58,6 +60,7 @@ const deleteProfileUser = async (userId) => {
     };
   } catch (error) {
     console.error("Error en el borrado lógico de perfil:", error);
+    return { code: 500, message: "Error en el servidor" };
   }
 };
 

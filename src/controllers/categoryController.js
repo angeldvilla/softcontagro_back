@@ -10,7 +10,7 @@ const getAllCategorys = async () => {
 
     return { code: 200, data: category };
   } catch (error) {
-    console.error("Error en la consulta de perfil:", error);
+    console.error("Error en la consulta de categorias:", error);
     return { code: 500, message: "Error en el servidor" };
   }
 };
