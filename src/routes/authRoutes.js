@@ -4,6 +4,7 @@ const db = require("../db");
 const authRoutes = Router();
 const { authUser } = require("../handlers/autHandler");
 const { verifyTokenMiddleware, clearToken } = require("../utils/authUtils");
+
 // Registro de usuario
 authRoutes.post("/register", async (req, res) => {
   try {

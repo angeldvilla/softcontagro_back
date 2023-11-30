@@ -31,6 +31,7 @@ const authUser = async (username, password) => {
     };
   } catch (error) {
     console.error("Error en la autenticación:", error);
+    return res.status(500).json({ code: 500, message: "Error en la autenticación:" });
   }
 };
 
