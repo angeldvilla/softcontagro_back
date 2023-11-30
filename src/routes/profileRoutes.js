@@ -6,10 +6,10 @@ const {
   deleteProfile,
 } = require("../handlers/profileHandler");
 
-profileRoutes.get("/", profileUser);
+profileRoutes.get("/:id", profileUser);
 
-profileRoutes.put("/edit", editProfile);
+profileRoutes.put("/:id", editProfile);
 
-profileRoutes.put("/delete", deleteProfile);
+profileRoutes.put("/:id", deleteProfile);
 
 module.exports = profileRoutes;

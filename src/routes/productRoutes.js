@@ -11,8 +11,8 @@ productRoutes.get("/", getProducts);
 
 productRoutes.post("/newProduct", createProduct);
 
-productRoutes.put("/edit", editProduct);
+productRoutes.put("/:id", editProduct);
 
-productRoutes.delete("/delete", deleteProduct);
+productRoutes.delete("/:id", deleteProduct);
 
 module.exports = productRoutes;

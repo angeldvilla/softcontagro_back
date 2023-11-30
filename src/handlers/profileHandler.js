@@ -6,7 +6,7 @@ const {
 
 const profileUser = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params;
     const profile = await getProfileUser(userId);
 
     return res.status(200).json({
@@ -23,7 +23,7 @@ const profileUser = async (req, res) => {
 // Editar perfil del usuario
 const editProfile = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params;
     const {
       nombre_completo,
       cedula,
@@ -33,13 +33,10 @@ const editProfile = async (req, res) => {
     } = req.body;
 
     if (!nombre_completo || !cedula || !telefono || !correo_electronico) {
-      return res
-        .status(400)
-        .json({
-          code: 400,
-          message:
-            "Los campos son requeridos, completelos por favor para editar",
-        });
+      return res.status(400).json({
+        code: 400,
+        message: "Los campos son requeridos, completelos por favor para editar",
+      });
     }
     const profileUpdated = await updateProfileUser(userId, {
       nombre_completo,
@@ -69,7 +66,7 @@ const editProfile = async (req, res) => {
 // Eliminar cuenta del usuario
 const deleteProfile = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.params;
 
     const deleteAccount = await deleteProfileUser(userId);
 

@@ -4,6 +4,6 @@ const { getCategorys, editCategory } = require("../handlers/categoryHandler");
 
 categoryRoutes.get("/", getCategorys);
 
-categoryRoutes.put("/edit", editCategory);
+categoryRoutes.put("/:id", editCategory);
 
 module.exports = categoryRoutes;

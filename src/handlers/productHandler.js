@@ -59,8 +59,8 @@ const createProduct = async (req, res) => {
 // Editar Producto
 const editProduct = async (req, res) => {
   try {
-    const { id, nombre, descripcion, precio, imagen_url, categoria_id } =
-      req.body;
+    const { id } = req.params;
+    const { nombre, descripcion, precio, imagen_url, categoria_id } = req.body;
 
     const productUpdated = await updateProduct(
       id,
@@ -90,18 +90,16 @@ const editProduct = async (req, res) => {
 // Eliminar Producto
 const deleteProduct = async (req, res) => {
   try {
-    const { id } = req.body;
+    const { id } = req.params;
 
     const productRemoved = await deleteProduct(id);
 
     if (productRemoved?.code === 200) {
-      return res
-        .status(productRemoved?.code)
-        .json({
-          code: productRemoved?.code,
-          message: productRemoved?.message,
-          data: productUpdated?.data,
-        });
+      return res.status(productRemoved?.code).json({
+        code: productRemoved?.code,
+        message: productRemoved?.message,
+        data: productUpdated?.data,
+      });
     } else {
       return res
         .status(500)

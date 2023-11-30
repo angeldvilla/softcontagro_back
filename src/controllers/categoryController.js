@@ -23,7 +23,7 @@ const updateCategory = async (categoryId, categoryName) => {
         SET nombre = ?
         WHERE id = ?
         `,
-      [categoryName.nombre, categoryId]
+      [categoryName, categoryId]
     );
 
     if (category.affectedRows === 0) {
