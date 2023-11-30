@@ -32,8 +32,16 @@ const editProfile = async (req, res) => {
       imagen_url,
     } = req.body;
 
-    // Lógica para actualizar el perfil en la base de datos
-    await updateProfileUser(userId, {
+    if (!nombre_completo || !cedula || !telefono || !correo_electronico) {
+      return res
+        .status(400)
+        .json({
+          code: 400,
+          message:
+            "Los campos son requeridos, completelos por favor para editar",
+        });
+    }
+    const profileUpdated = await updateProfileUser(userId, {
       nombre_completo,
       cedula,
       telefono,
@@ -41,10 +49,17 @@ const editProfile = async (req, res) => {
       imagen_url,
     });
 
-    return res.status(200).json({
-      code: 200,
-      message: "Perfil actualizado exitosamente",
-    });
+    if (profileUpdated?.code === 200) {
+      return res.status(profileUpdated?.code).json({
+        code: profileUpdated?.code,
+        message: profileUpdated?.message,
+        data: profileUpdated?.data,
+      });
+    } else {
+      return res
+        .status(500)
+        .json({ code: 500, message: "Error al editar el perfil" });
+    }
   } catch (error) {
     console.error("Error en el servidor, intente mas tarde", error);
     return res.status(500).json({ code: 500, message: "Error en el servidor" });
@@ -56,13 +71,20 @@ const deleteProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
 
-    // Lógica para realizar borrado lógico
-    await deleteProfileUser(userId);
+    const deleteAccount = await deleteProfileUser(userId);
 
-    return res.status(200).json({
-      code: 200,
-      message: "Cuenta eliminada exitosamente",
-    });
+    if (deleteAccount?.code === 200) {
+      return res.status(deleteAccount?.code).json({
+        code: deleteAccount?.code,
+        message: deleteAccount?.message,
+        data: deleteAccount?.data,
+      });
+    } else {
+      return res.status(500).json({
+        code: 500,
+        message: "Error al eliminar la cuenta, intente de nuevo",
+      });
+    }
   } catch (error) {
     console.error("Error en el servidor, intente mas tarde", error);
     return res.status(500).json({ code: 500, message: "Error en el servidor" });

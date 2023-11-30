@@ -24,11 +24,13 @@ const authUser = async (username, password) => {
       credentials.Rol,
     ]);
 
-    return {
-      code: 200,
-      message: "Inicio de sesión exitoso",
-      token: token,
-    };
+    if(credentials?.code === 200){
+      return {
+        code: credentials?.code,
+        message: credentials?.message,
+        token: token,
+      };
+    }
   } catch (error) {
     console.error("Error en la autenticación:", error);
     return res.status(500).json({ code: 500, message: "Error en la autenticación:" });

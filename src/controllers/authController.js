@@ -22,7 +22,11 @@ const getAuthentication = async (username, password) => {
       `,
       [username, password]
     );
-    return credentials;
+    return {
+      code: 200,
+      message: "Inicio de sesión exitoso",
+      data: credentials,
+    };
   } catch (error) {
     console.error("Error en la consulta de autenticación:", error);
   }

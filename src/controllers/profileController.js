@@ -17,7 +17,7 @@ const getProfileUser = async (userId) => {
 
 const updateProfileUser = async (userId, profile) => {
   try {
-    await db.execute(
+    const [profile] = await db.execute(
       `
       UPDATE usuarios SET nombre_completo = ?, cedula = ?, telefono = ?, correo_electronico = ?, imagen_url = ? WHERE id = ? 
         `,
@@ -30,6 +30,11 @@ const updateProfileUser = async (userId, profile) => {
         userId,
       ]
     );
+    return {
+      code: 200,
+      message: "Perfil actualizado exitosamente",
+      data: profile,
+    };
   } catch (error) {
     console.error("Error en la actualización de perfil:", error);
   }
@@ -38,7 +43,7 @@ const updateProfileUser = async (userId, profile) => {
 // Realizar borrado lógico del perfil del usuario
 const deleteProfileUser = async (userId) => {
   try {
-    await db.execute(
+    const [account] = await db.execute(
       `
       UPDATE usuarios 
       SET estado = 0
@@ -46,6 +51,11 @@ const deleteProfileUser = async (userId) => {
       `,
       [userId]
     );
+    return {
+      code: 200,
+      message: "Cuenta eliminada exitosamente",
+      data: account,
+    };
   } catch (error) {
     console.error("Error en el borrado lógico de perfil:", error);
   }
