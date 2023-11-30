@@ -28,7 +28,7 @@ const getCategorys = async (req, res) => {
 // Editar categorias
 const editCategory = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params;
     const { nombre } = req.body;
 
     const categoryUpdated = await updateCategory(id, nombre);

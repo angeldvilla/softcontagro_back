@@ -59,7 +59,7 @@ const createProduct = async (req, res) => {
 // Editar Producto
 const editProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params;
     const { nombre, descripcion, precio, imagen_url, categoria_id } = req.body;
 
     const productUpdated = await updateProduct(
@@ -90,7 +90,7 @@ const editProduct = async (req, res) => {
 // Eliminar Producto
 const deleteProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params;
 
     const productRemoved = await deleteProduct(id);
 
