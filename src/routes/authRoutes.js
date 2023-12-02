@@ -1,4 +1,4 @@
-/* const { Router } = require("express");
+const { Router } = require("express");
 const authRoutes = Router();
 const {
   registerUser,
@@ -59,4 +59,3 @@ authRoutes.delete(
 );
 
 module.exports = authRoutes;
- */

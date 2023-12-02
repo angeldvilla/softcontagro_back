@@ -1,6 +1,6 @@
-/* const ErrorHander = require("../utils/errorHandler");
+const ErrorHander = require("../utils/errorHandler");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const User = require("../models/usersModel");
+const Users = require("../models/usersModel");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
@@ -8,16 +8,15 @@ const cloudinary = require("cloudinary");
 
 // Registrar un usuario
 const registerUser = catchAsyncErrors(async (req, res, next) => {
-  const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+  const { avatar_public_id, avatar_secure_url, nombre, apellido, cedula, telefono, email, contraseña } = req.body;
+
+  const myCloud = await cloudinary.v2.uploader.upload(avatar_public_id, avatar_secure_url, {
     folder: "avatars",
     width: 150,
     crop: "scale",
   });
 
-  const { nombre, apellido, cedula, telefono, email, contraseña } =
-    req.body;
-
-  const user = await User.create({
+  const user = await Users.create({
     nombre,
     apellido,
     cedula,
@@ -41,7 +40,7 @@ const loginUser = catchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHander("Por favor ingrese correo & contraseña", 400));
   }
 
-  const user = await User.findOne({ email }).select("+contraseña");
+  const user = await Users.findOne({ email }).select("+contraseña");
 
   if (!user) {
     return next(
@@ -75,7 +74,7 @@ const logout = catchAsyncErrors(async (req, res, next) => {
 
 // Recuperar contraseña
 const forgotPassword = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findOne({ email: req.body.email });
+  const user = await Users.findOne({ email: req.body.email });
 
   if (!user) {
     return next(new ErrorHander("Usuario no encontrado", 404));
@@ -100,7 +99,7 @@ const forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `Email sent to ${user.email} successfully`,
+      message: `Correo enviado a ${user.email} correctamente`,
     });
   } catch (error) {
     user.resetPasswordToken = undefined;
@@ -120,7 +119,7 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
     .update(req.params.token)
     .digest("hex");
 
-  const user = await User.findOne({
+  const user = await Users.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
   });
@@ -128,14 +127,14 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     return next(
       new ErrorHander(
-        "Reset Password Token is invalid or has been expired",
+        "El token de restablecimiento de contraseña no es válido o ha caducado",
         400
       )
     );
   }
 
   if (req.body.password !== req.body.confirmPassword) {
-    return next(new ErrorHander("Password does not password", 400));
+    return next(new ErrorHander("La contraseña no es contraseña", 400));
   }
 
   user.password = req.body.password;
@@ -149,7 +148,7 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 // Obtener detalles del usuario
 const getUserDetails = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+  const user = await Users.findByPk(req.user.id);
 
   res.status(200).json({
     success: true,
@@ -159,16 +158,16 @@ const getUserDetails = catchAsyncErrors(async (req, res, next) => {
 
 // actualizar contraseña
 const updatePassword = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.user.id).select("+password");
+  const user = await Users.findByPk(req.user.id).select("+contraseña");
 
   const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
 
   if (!isPasswordMatched) {
-    return next(new ErrorHander("Old password is incorrect", 400));
+    return next(new ErrorHander("Antigua contraseña es incorrecta", 400));
   }
 
   if (req.body.newPassword !== req.body.confirmPassword) {
-    return next(new ErrorHander("password does not match", 400));
+    return next(new ErrorHander("Las contraseñas no coinciden", 400));
   }
 
   user.password = req.body.newPassword;
@@ -180,23 +179,24 @@ const updatePassword = catchAsyncErrors(async (req, res, next) => {
 
 // actualizar perfil de usuario
 const updateProfile = catchAsyncErrors(async (req, res, next) => {
+  const { avatar_public_id, avatar_secure_url, nombre, apellido, cedula, telefono, email } = req.body;
   const newUserData = {
-    nombre: req.body.nombre,
-    apellido: req.body.apellido,
-    cedula: req.body.cedula,
-    telefono: req.body.telefono,
-    username: req.body.username,
-    email: req.body.email,
+    nombre: nombre,
+    apellido: apellido,
+    cedula: cedula,
+    telefono: telefono,
+    username: username,
+    email: email,
   };
 
-  if (req.body.avatar !== "") {
-    const user = await User.findById(req.user.id);
+  if (avatar_public_id && avatar_secure_url !== "") {
+    const user = await Users.findByPk(req.user.id);
 
     const imageId = user.avatar_public_id;
 
     await cloudinary.v2.uploader.destroy(imageId);
 
-    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+    const myCloud = await cloudinary.v2.uploader.upload(avatar_public_id, avatar_secure_url, {
       folder: "avatars",
       width: 150,
       crop: "scale",
@@ -206,7 +206,7 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
     newUserData.avatar_secure_url = myCloud.secure_url;
   }
 
-  const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+  const user = await Users.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
@@ -214,12 +214,13 @@ const updateProfile = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    message: "Datos actualizados correctamente",
   });
 });
 
 // Obtener datos de todos los usuarios(admin)
 const getAllUser = catchAsyncErrors(async (req, res, next) => {
-  const users = await User.find();
+  const users = await Users.findAll();
 
   res.status(200).json({
     success: true,
@@ -229,11 +230,12 @@ const getAllUser = catchAsyncErrors(async (req, res, next) => {
 
 // Obtener datos de un usuario (admin)
 const getSingleUser = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const id = req.params.id;
+  const user = await Users.findByPk(id);
 
   if (!user) {
     return next(
-      new ErrorHander(`User does not exist with Id: ${req.params.id}`)
+      new ErrorHander(`El usuario no existe con Id: ${id}`)
     );
   }
 
@@ -245,13 +247,19 @@ const getSingleUser = catchAsyncErrors(async (req, res, next) => {
 
 // actualizar rol de un usuario -- Admin
 const updateUserRole = catchAsyncErrors(async (req, res, next) => {
+  const id = req.params;
+  const { avatar_public_id, avatar_secure_url, nombre, apellido, cedula, telefono, email, role_id } = req.body;
+
   const newUserData = {
-    name: req.body.name,
-    email: req.body.email,
-    role: req.body.role,
+    nombre: nombre,
+    apellido: apellido,
+    cedula: cedula,
+    telefono: telefono,
+    email: email,
+    role_id: role_id,
   };
 
-  await User.findByIdAndUpdate(req.params.id, newUserData, {
+  await Users.findByIdAndUpdate(id, newUserData, {
     new: true,
     runValidators: true,
     useFindAndModify: false,
@@ -259,20 +267,22 @@ const updateUserRole = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    message: "Rol de usuario actualizado correctamente",
   });
 });
 
 // Eliminar usuario --Admin
 const deleteUser = catchAsyncErrors(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
+  const id = req.params;
+  const user = await Users.findById(id);
 
   if (!user) {
     return next(
-      new ErrorHander(`User does not exist with Id: ${req.params.id}`, 400)
+      new ErrorHander(`El usuario no existe con Id: ${id}`, 400)
     );
   }
 
-  const imageId = user.avatar.public_id;
+  const imageId = user.avatar_public_id;
 
   await cloudinary.v2.uploader.destroy(imageId);
 
@@ -280,7 +290,7 @@ const deleteUser = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "User Deleted Successfully",
+    message: "Usuario eliminado correctamente",
   });
 });
 
@@ -298,4 +308,4 @@ module.exports = {
   getSingleUser,
   updateUserRole,
   deleteUser,
-} */
+}

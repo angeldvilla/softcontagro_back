@@ -1,5 +1,4 @@
 // Crear el token y guardarlo en la cookie
-
 const sendToken = (user, statusCode, res) => {
   const token = user.getJWTToken();
 
@@ -12,6 +11,7 @@ const sendToken = (user, statusCode, res) => {
   };
 
   res.status(statusCode).cookie("token", token, options).json({
+    message: "Iniciaste sesión",
     success: true,
     user,
     token,

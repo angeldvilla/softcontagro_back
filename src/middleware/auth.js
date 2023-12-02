@@ -1,4 +1,4 @@
-/* const ErrorHander = require("../utils/errorHandler");
+const ErrorHander = require("../utils/errorHandler");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const jwt = require("jsonwebtoken");
 const User = require("../models/usersModel");
@@ -24,10 +24,10 @@ const isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
 
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+    if (!roles.includes(req.user.rol_id)) {
       return next(
         new ErrorHander(
-          `El rol de: ${req.user.role} no tiene permiso para acceder a este recurso. `,
+          `El rol de: ${req.user.rol_id} no tiene permiso para acceder a este recurso. `,
           403
         )
       );
@@ -38,4 +38,3 @@ const authorizeRoles = (...roles) => {
 };
 
 module.exports = { isAuthenticatedUser, authorizeRoles };
- */
