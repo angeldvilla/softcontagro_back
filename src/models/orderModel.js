@@ -1,8 +1,10 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
+const Address = require("./addressModel");
+const Users = require("./usersModel");
 
 const Order = sequelize.define(
-  "orden",
+  "ordenes",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -52,4 +54,22 @@ const Order = sequelize.define(
   }
 );
 
-module.exports = { Order };
+Order.belongsTo(Address, {
+  foreignKey: "shippingInfo",
+  targetKey: "id",
+});
+Address.hasMany(Order, {
+  foreignKey: "shippingInfo",
+  sourceKey: "id",
+});
+
+Order.belongsTo(Users, {
+  foreignKey: "usuario_id",
+  targetKey: "id",
+});
+Users.hasMany(Order, {
+  foreignKey: "usuario_id",
+  sourceKey: "id",
+});
+
+module.exports = Order;

@@ -20,4 +20,4 @@ const Role = sequelize.define(
   }
 );
 
-module.exports = { Role };
+module.exports = Role;

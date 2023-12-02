@@ -1,6 +1,6 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
-const { Role } = require("./roleModel.js");
+const Role = require("./roleModel.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -57,6 +57,7 @@ const Users = sequelize.define(
     telefono: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: true,
     },
     email: {
       type: DataTypes.STRING,
@@ -71,8 +72,8 @@ const Users = sequelize.define(
       allowNull: false,
       validate: {
         min: {
-          args: [8, 10],
-          msg: "La contraseña debe tener al menos entre 8 y 10 caracteres",
+          args: [8, 16],
+          msg: "La contraseña debe tener al menos entre 8 y 16 caracteres",
         },
       },
     },
@@ -108,11 +109,8 @@ const Users = sequelize.define(
   }
 );
 
-Users.belongsTo(Role, { foreignKey: "rol_id", sourceKey: "id" });
-Role.hasMany(Users, { foreignKey: "rol_id", targetKey: "id" });
-
-Users.sync({ force: false });
-Role.sync({ force: false });
+Users.belongsTo(Role, { foreignKey: "rol_id", targetKey: "id" });
+Role.hasMany(Users, { foreignKey: "rol_id", sourceKey: "id" });
 
 // Hook (similar al pre-save)
 Users.beforeCreate(async (user, options) => {
@@ -147,4 +145,4 @@ Users.prototype.generateResetPasswordToken = function () {
   return resetToken;
 };
 
-module.exports = { Users };
+module.exports = Users;

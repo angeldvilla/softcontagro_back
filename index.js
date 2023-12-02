@@ -4,7 +4,6 @@ const { PORT, CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
 const { sequelize } = require("./src/config/db.js");
 const server = require("./src/app.js");
 const cloudinary = require("cloudinary");
-const { Users } = require("./src/models/usersModel.js");
 
 // Conexion a la base de datos
 try {

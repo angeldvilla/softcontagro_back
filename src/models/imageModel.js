@@ -1,17 +1,20 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 
-const Country = sequelize.define(
-  "paises",
+const Image = sequelize.define(
+  "imagenes",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    nombre: {
+    public_id: {
       type: DataTypes.STRING,
-      unique: true,
+      allowNull: false,
+    },
+    url: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
   },
@@ -20,4 +23,4 @@ const Country = sequelize.define(
   }
 );
 
-module.exports = Country;
+module.exports = Image;

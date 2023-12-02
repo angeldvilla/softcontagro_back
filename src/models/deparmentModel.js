@@ -1,8 +1,9 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
+const Country = require("./countrysModel");
 
 const Deparment = sequelize.define(
-  "ciudad",
+  "departamentos",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -14,7 +15,7 @@ const Deparment = sequelize.define(
       unique: true,
       allowNull: false,
     },
-    ciudad_id: {
+    pais_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -24,4 +25,7 @@ const Deparment = sequelize.define(
   }
 );
 
-module.exports = { Deparment };
+Deparment.belongsTo(Country, { foreignKey: "pais_id", targetKey: "id" });
+Country.hasMany(Deparment, { foreignKey: "pais_id", sourceKey: "id" });
+
+module.exports = Deparment;

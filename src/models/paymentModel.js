@@ -1,8 +1,10 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
+const Order = require("./orderModel");
+const Users = require("./usersModel");
 
 const Payment = sequelize.define(
-  "pago",
+  "pagos",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -31,5 +33,11 @@ const Payment = sequelize.define(
     timestamps: false,
   }
 );
+
+Payment.belongsTo(Order, { foreignKey: "orden_id", targetKey: "id" });
+Order.hasOne(Payment, { foreignKey: "orden_id", sourceKey: "id" });
+
+Payment.belongsTo(Users, { foreignKey: "usuario_id", targetKey: "id" });
+Users.hasMany(Payment, { foreignKey: "usuario_id", sourceKey: "id" });
 
 module.exports = { Payment };

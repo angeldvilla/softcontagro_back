@@ -1,8 +1,10 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
+const Order = require("./orderModel");
+const Product = require("./productModel");
 
 const OrderItem = sequelize.define(
-  "ordenItem",
+  "ordenesItems",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -35,4 +37,10 @@ const OrderItem = sequelize.define(
   }
 );
 
-module.exports = { OrderItem };
+OrderItem.belongsTo(Order, { foreignKey: "orden_id", targetKey: "id" });
+Order.hasMany(OrderItem, { foreignKey: "orden_id", sourceKey: "id" });
+
+OrderItem.belongsTo(Product, { foreignKey: "producto_id", targetKey: "id" });
+Product.hasMany(OrderItem, { foreignKey: "producto_id", sourceKey: "id" });
+
+module.exports = OrderItem;

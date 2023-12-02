@@ -1,5 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
+const Users = require("./usersModel");
+const Product = require("./productModel");
 
 const Favorites = sequelize.define(
   "favoritos",
@@ -9,18 +11,13 @@ const Favorites = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    usuario_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    producto_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
   },
   {
     timestamps: false,
   }
 );
 
-module.exports = { Favorites };
+Users.belongsToMany(Product, { through: Favorites });
+Product.belongsToMany(Users, { through: Favorites });
+
+module.exports = Favorites;
