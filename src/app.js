@@ -1,20 +1,22 @@
+require("./config/db");
 const express = require("express");
+const app = express();
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
+const fileUpload = require("express-fileupload");
 const routes = require("./routes/index");
+const errorMiddleware = require("./middleware/error");
 
-require("./db");
+app.name = "API";
 
-const server = express();
-
-server.name = "API";
-
-server.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
-server.use(bodyParser.json({ limit: "50mb" }));
-server.use(cookieParser());
-server.use(morgan("dev"));
-server.use((req, res, next) => {
+// Middlewares
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(cookieParser());
+app.use(fileUpload());
+app.use(morgan("dev"));
+app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Credentials", "true");
   res.header(
@@ -25,10 +27,14 @@ server.use((req, res, next) => {
   next();
 });
 
-server.use("/", routes);
+//Rutas
+app.use("/", routes);
 
-// Error catching endware.
-server.use((err, req, res, next) => {
+// Middleware para Errores
+/* app.use(errorMiddleware); */
+
+// Error al detectar software final.
+app.use((err, req, res, next) => {
   // eslint-disable-line no-unused-vars
   const status = err.status || 500;
   const message = err.message || err;
@@ -36,4 +42,4 @@ server.use((err, req, res, next) => {
   res.status(status).send(message);
 });
 
-module.exports = server;
+module.exports = app;

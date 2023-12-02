@@ -1,11 +1,11 @@
-const { Router } = require("express");
+/* const { Router } = require("express");
 const orderRoutes = Router();
 const {
   getOrders,
   createOrder,
   editOrder,
   deleteOrder,
-} = require("../handlers/orderHandler");
+} = require("../controllers/orderController");
 
 orderRoutes.get("/:userId", getOrders);
 
@@ -15,4 +15,4 @@ orderRoutes.put("/confirm/:userId/", editOrder);
 
 orderRoutes.delete("/delete/:orderId", deleteOrder);
 
-module.exports = orderRoutes;
+module.exports = orderRoutes; */

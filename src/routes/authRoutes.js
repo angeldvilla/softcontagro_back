@@ -1,95 +1,62 @@
-const { Router } = require("express");
-const bcrypt = require("bcrypt");
-const db = require("../db");
+/* const { Router } = require("express");
 const authRoutes = Router();
-const { authUser } = require("../handlers/autHandler");
-const { verifyTokenMiddleware, clearToken } = require("../utils/authUtils");
+const {
+  registerUser,
+  loginUser,
+  logout,
+  forgotPassword,
+  resetPassword,
+  getUserDetails,
+  updatePassword,
+  updateProfile,
+  getAllUser,
+  getSingleUser,
+  updateUserRole,
+  deleteUser,
+} = require("../controllers/authController");
+const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 
-// Registro de usuario
-authRoutes.post("/register", async (req, res) => {
-  try {
-    const {
-      nombre_completo,
-      cedula,
-      telefono,
-      correo_electronico,
-      nombre_usuario,
-      contraseña,
-    } = req.body;
-    const hashedPassword = await bcrypt.hash(contraseña, 10);
+authRoutes.post("/register", registerUser);
 
-    // Insertar usuario en la base de datos
-    const [result] = await db.execute(
-      "INSERT INTO usuarios (nombre_completo, cedula, telefono, nombre_usuario, correo_electronico, contraseña, imagen_url, estado) VALUES (?, ?, ?, ?, ?, ?, 'https://cdn-icons-png.flaticon.com/512/6596/6596121.png', 1)",
-      [
-        nombre_completo,
-        cedula,
-        telefono,
-        nombre_usuario,
-        correo_electronico,
-        hashedPassword,
-      ]
-    );
+authRoutes.post("/login", loginUser);
 
-    // Obtener el ID del usuario insertado
-    const userId = result.insertId;
+authRoutes.post("/password/forgot", forgotPassword);
 
-    // Insertar la relación entre usuario y rol en la tabla usuarios_roles
-    await db.execute(
-      ` 
-      INSERT INTO usuarios_roles (usuario_id, rol_id) VALUES (?, 2)
-      `,
-      [userId]
-    );
+authRoutes.put("/password/reset/:token", resetPassword);
 
-    return res
-      .status(201)
-      .json({ code: 200, message: "Usuario registrado exitosamente" });
-  } catch (error) {
-    console.error("Error en el registro:", error);
-    return res.status(500).json({ error: "Error en el servidor" });
-  }
-});
+authRoutes.get("/logout", logout);
 
-// inicio de sesión
-authRoutes.post("/login", async (req, res) => {
-  try {
-    const { nombre_usuario, contraseña } = req.body;
+authRoutes.get("/me", isAuthenticatedUser, getUserDetails);
 
-    const result = await authUser(nombre_usuario, contraseña);
+authRoutes.put("/password/update", isAuthenticatedUser, updatePassword);
 
-    if (result.code === 200) {
-      return res.status(result.code).json({
-        code: result.code,
-        message: result.message,
-        data: result.data,
-        token: result.token,
-      });
-    } else {
-      return res.status(result.code).json({
-        code: result.code,
-        message: result.message,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      code: 500,
-      message: "Error en el servidor",
-    });
-  }
-});
+authRoutes.put("/me/update", isAuthenticatedUser, updateProfile);
 
-authRoutes.post("/logout", verifyTokenMiddleware, (req, res) => {
-  clearToken(res);
-  return res.status(200).json({
-    code: 200,
-    message: "Sesión cerrada exitosamente",
-  });
-});
+authRoutes.get(
+  "/admin/users",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  getAllUser
+);
 
-/* authRoutes.get("/protected", verifyTokenMiddleware, (req, res) => {
-  // Si llega hasta aquí, el token es válido
-  res.status(200).json({ message: "Ruta protegida", user: req.user });
-}); */
+authRoutes.get(
+  "/admin/user/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  getSingleUser
+);
+authRoutes.put(
+  "/admin/user/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  updateUserRole
+);
+authRoutes.delete(
+  "/admin/user/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  deleteUser
+);
 
 module.exports = authRoutes;
+ */
