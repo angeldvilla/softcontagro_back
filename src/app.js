@@ -31,7 +31,7 @@ app.use((req, res, next) => {
 app.use("/", routes);
 
 // Middleware para Errores
-/* app.use(errorMiddleware); */
+app.use(errorMiddleware);
 
 // Error al detectar software final.
 app.use((err, req, res, next) => {

@@ -9,7 +9,7 @@ const {
   getUserDetails,
   updatePassword,
   updateProfile,
-  getAllUser,
+  getAllUsers,
   getSingleUser,
   updateUserRole,
   deleteUser,
@@ -35,26 +35,26 @@ authRoutes.put("/me/update", isAuthenticatedUser, updateProfile);
 authRoutes.get(
   "/admin/users",
   isAuthenticatedUser,
-  authorizeRoles("admin"),
-  getAllUser
+  authorizeRoles("Administrador"),
+  getAllUsers
 );
 
 authRoutes.get(
   "/admin/user/:id",
   isAuthenticatedUser,
-  authorizeRoles("admin"),
+  authorizeRoles("Administrador"),
   getSingleUser
 );
 authRoutes.put(
   "/admin/user/:id",
   isAuthenticatedUser,
-  authorizeRoles("admin"),
+  authorizeRoles("Administrador"),
   updateUserRole
 );
 authRoutes.delete(
   "/admin/user/:id",
   isAuthenticatedUser,
-  authorizeRoles("admin"),
+  authorizeRoles("Administrador"),
   deleteUser
 );
 
