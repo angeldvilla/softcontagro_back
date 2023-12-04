@@ -1,34 +1,29 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
-const Order = require("./orderModel");
 const Product = require("./productModel");
 
 const OrderItem = sequelize.define(
-  "ordenesItems",
+  "ordenItems",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
+    nombre: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    precio: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
     cantidad: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    precio: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    fecha: {
-      type: DataTypes.DATE,
-      allowNull: false,
-    },
-    orden_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    producto_id: {
-      type: DataTypes.INTEGER,
+    imagen: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
   },
@@ -37,10 +32,7 @@ const OrderItem = sequelize.define(
   }
 );
 
-OrderItem.belongsTo(Order, { foreignKey: "orden_id", targetKey: "id" });
-Order.hasMany(OrderItem, { foreignKey: "orden_id", sourceKey: "id" });
-
-OrderItem.belongsTo(Product, { foreignKey: "producto_id", targetKey: "id" });
-Product.hasMany(OrderItem, { foreignKey: "producto_id", sourceKey: "id" });
+OrderItem.belongsTo(Product, { foreignKey: "productId", targetKey: "id" });
+Product.hasMany(OrderItem, { foreignKey: "productId", sourceKey: "id" });
 
 module.exports = OrderItem;

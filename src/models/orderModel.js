@@ -1,7 +1,9 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 const Address = require("./addressModel");
-const Users = require("./usersModel");
+const OrderItem = require("../models/orderItemsModel");
+const Payment = require("../models/paymentModel");
+const User = require("./usersModel");
 
 const Order = sequelize.define(
   "ordenes",
@@ -11,42 +13,42 @@ const Order = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
-    shippingInfo: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    precio_unitario: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    precio_compra: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    precio_total: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    estado: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 1,
-    },
     pagado_at: {
       type: DataTypes.DATE,
       allowNull: false,
     },
+    precio_articulos: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    precio_impuesto: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    precio_envio: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    precio_total: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      default: 0,
+    },
+    estado_orden: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "Processing",
+    },
     entregado_at: {
       type: DataTypes.DATE,
-      allowNull: false,
+      allowNull: true,
     },
     creado_at: {
       type: DataTypes.DATE,
-      allowNull: false,
-    },
-    usuario_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
@@ -54,22 +56,16 @@ const Order = sequelize.define(
   }
 );
 
-Order.belongsTo(Address, {
-  foreignKey: "shippingInfo",
-  targetKey: "id",
-});
-Address.hasMany(Order, {
-  foreignKey: "shippingInfo",
-  sourceKey: "id",
-});
+Order.belongsTo(Address, { foreignKey: "shippingInfoId", targetKey: "id" });
+Address.hasOne(Order, { foreignKey: "shippingInfoId", sourceKey: "id" });
 
-Order.belongsTo(Users, {
-  foreignKey: "usuario_id",
-  targetKey: "id",
-});
-Users.hasMany(Order, {
-  foreignKey: "usuario_id",
-  sourceKey: "id",
-});
+Order.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
+User.hasMany(Order, { foreignKey: "userId", sourceKey: "id" });
+
+Order.hasMany(OrderItem, { foreignKey: "orderId" });
+OrderItem.belongsTo(Order, { foreignKey: "orderId" });
+
+Order.hasOne(Payment, { foreignKey: "paymentInfoId" });
+Payment.belongsTo(Order, { foreignKey: "paymentInfoId" });
 
 module.exports = Order;

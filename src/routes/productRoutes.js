@@ -14,7 +14,7 @@ productRoutes.get("/", getAllProducts);
 
 productRoutes.get("/product/:id", getProductDetails);
 
-productRoutes.get("/admin/products", isAuthenticatedUser, authorizeRoles("admin"), getAdminProducts);
+productRoutes.get("/admin/products", isAuthenticatedUser, authorizeRoles("Administrador"), getAdminProducts);
 
 productRoutes.post("/admin/product/new", isAuthenticatedUser, authorizeRoles("Administrador"), createProduct);
 

@@ -1,9 +1,9 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
-const Product = require("./productModel");
+const User = require("./usersModel");
 
-const ProductImage = sequelize.define(
-  "imagenes",
+const UserAvatar = sequelize.define(
+  "userAvatar",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -24,7 +24,7 @@ const ProductImage = sequelize.define(
   }
 );
 
-ProductImage.belongsTo(Product, { foreignKey: "productId", targetKey: "id" });
-Product.hasMany(ProductImage, { foreignKey: "productId", sourceKey: "id" });
+UserAvatar.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
+User.hasOne(UserAvatar, { foreignKey: "userId", sourceKey: "id" });
 
-module.exports = ProductImage;
+module.exports = UserAvatar;

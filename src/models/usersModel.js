@@ -77,14 +77,6 @@ const Users = sequelize.define(
         },
       },
     },
-    avatar_public_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    avatar_secure_url: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
     estado: {
       type: DataTypes.INTEGER,
       allowNull: false,
