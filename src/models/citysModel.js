@@ -15,10 +15,6 @@ const City = sequelize.define(
       unique: true,
       allowNull: false,
     },
-    departamento_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
   },
   {
     timestamps: false,

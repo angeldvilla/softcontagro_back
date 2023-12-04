@@ -56,16 +56,16 @@ const Order = sequelize.define(
   }
 );
 
-Order.belongsTo(Address, { foreignKey: "shippingInfoId", targetKey: "id" });
-Address.hasOne(Order, { foreignKey: "shippingInfoId", sourceKey: "id" });
+Order.belongsTo(Address, { foreignKey: "direccionInfoId", targetKey: "id" });
+Address.hasOne(Order, { foreignKey: "direccionInfoId", sourceKey: "id" });
 
-Order.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
-User.hasMany(Order, { foreignKey: "userId", sourceKey: "id" });
+Order.belongsTo(User, { foreignKey: "usuarioId", targetKey: "id" });
+User.hasMany(Order, { foreignKey: "usuarioId", sourceKey: "id" });
 
-Order.hasMany(OrderItem, { foreignKey: "orderId" });
-OrderItem.belongsTo(Order, { foreignKey: "orderId" });
+Order.hasMany(OrderItem, { foreignKey: "ordenId" });
+OrderItem.belongsTo(Order, { foreignKey: "ordenId" });
 
-Order.hasOne(Payment, { foreignKey: "paymentInfoId" });
-Payment.belongsTo(Order, { foreignKey: "paymentInfoId" });
+Order.hasOne(Payment, { foreignKey: "pagoInfoId" });
+Payment.belongsTo(Order, { foreignKey: "pagoInfoId" });
 
 module.exports = Order;

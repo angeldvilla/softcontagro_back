@@ -32,10 +32,6 @@ const Product = sequelize.define(
       allowNull: false,
       defaultValue: 1,
     },
-    categoria_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
   },
   {
     timestamps: false,
@@ -46,8 +42,8 @@ const Product = sequelize.define(
 Product.belongsTo(Category, { foreignKey: "categoria_id", targetKey: "id" });
 Category.hasMany(Product, { foreignKey: "categoria_id", sourceKey: "id" });
 
-Product.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
-User.hasMany(Product, { foreignKey: "userId", sourceKey: "id" });
+Product.belongsTo(User, { foreignKey: "usuarioId", targetKey: "id" });
+User.hasMany(Product, { foreignKey: "usuarioId", sourceKey: "id" });
 
 
 module.exports = Product;

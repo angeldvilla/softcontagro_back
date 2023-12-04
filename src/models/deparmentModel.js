@@ -15,10 +15,6 @@ const Deparment = sequelize.define(
       unique: true,
       allowNull: false,
     },
-    pais_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
   },
   {
     timestamps: false,

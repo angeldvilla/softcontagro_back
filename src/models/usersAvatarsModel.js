@@ -24,7 +24,7 @@ const UserAvatar = sequelize.define(
   }
 );
 
-UserAvatar.belongsTo(User, { foreignKey: "userId", targetKey: "id" });
-User.hasOne(UserAvatar, { foreignKey: "userId", sourceKey: "id" });
+UserAvatar.belongsTo(User, { foreignKey: "usuarioId", targetKey: "id" });
+User.hasOne(UserAvatar, { foreignKey: "usuarioId", sourceKey: "id" });
 
 module.exports = UserAvatar;

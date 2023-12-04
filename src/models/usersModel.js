@@ -82,11 +82,6 @@ const Users = sequelize.define(
       allowNull: false,
       defaultValue: 1,
     },
-    rol_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      defaultValue: 2,
-    },
     reset_password_token: {
       type: DataTypes.STRING,
     },
