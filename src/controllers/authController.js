@@ -8,14 +8,28 @@ const cloudinary = require("cloudinary");
 
 // Registrar un usuario
 const registerUser = catchAsyncErrors(async (req, res, next) => {
+  const {
+    nombre,
+    apellido,
+    cedula,
+    telefono,
+    email,
+    contraseña,
+  } = req.body;
 
-  const { avatar_public_id, avatar_secure_url, nombre, apellido, cedula, telefono, email, contraseña } = req.body;
+  // Subir avatar a Cloudinary (si está presente)
+  let avatarUrl = "";
+  if (req.file) {
+    const result = await cloudinary.v2.uploader.upload(req.file.path, {
+      folder: "avatars",
+      width: 150,
+      crop: "scale",
+    });
 
-  const myCloud = await cloudinary.v2.uploader.upload(avatar_public_id, avatar_secure_url, {
-    folder: "avatars",
-    width: 150,
-    crop: "scale",
-  });
+    avatarUrl = result.secure_url;
+  } else {
+    avatarUrl = "https://res.cloudinary.com/dxe4igvmq/image/upload/v1701735128/avatars/vq3vfsnac9izn50yvgpw.png";
+  }
 
   const user = await Users.create({
     nombre,
@@ -24,12 +38,12 @@ const registerUser = catchAsyncErrors(async (req, res, next) => {
     telefono,
     email,
     contraseña,
-    avatar_public_id: myCloud.public_id,
-    avatar_secure_url: myCloud.secure_url,
+    avatar_url: avatarUrl,
   });
 
   sendToken(user, 201, res);
 });
+
 
 // Iniciar sesión
 const loginUser = catchAsyncErrors(async (req, res, next) => {
@@ -81,7 +95,7 @@ const logout = catchAsyncErrors(async (req, res, next) => {
 // Recuperar contraseña
 const forgotPassword = catchAsyncErrors(async (req, res, next) => {
   const { email } = req.body;
-  const user = await Users.findOne({ where: { email: email } });
+  const user = await Users.findOne({ where: { email } });
 
   if (!user) {
     return next(new ErrorHandler("Usuario no encontrado", 404));
@@ -106,12 +120,14 @@ const forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `Correo enviado a ${user.email} correctamente`,
+      message: `Correo de recuperación de contraseña enviado a ${user.email} correctamente`,
     });
   } catch (error) {
+    // En caso de error, limpiar el token y la expiración
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
+    // Guardar el usuario sin validación
     await user.save({ validateBeforeSave: false });
 
     return next(new ErrorHandler(error.message, 500));
@@ -126,6 +142,7 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
     .update(req.params.token)
     .digest("hex");
 
+  // Buscar usuario con el token y que no haya caducado
   const user = await Users.findOne({
     where: {
       reset_password_token: resetPasswordToken,
@@ -133,7 +150,7 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
     },
   });
 
-
+  // Verificar si el usuario existe
   if (!user) {
     return next(
       new ErrorHandler(
@@ -143,103 +160,131 @@ const resetPassword = catchAsyncErrors(async (req, res, next) => {
     );
   }
 
+  // Verificar que las contraseñas coincidan
   if (req.body.contraseña !== req.body.confirmPassword) {
     return next(new ErrorHandler("Las contraseñas no coinciden", 400));
   }
 
+  // Establecer la nueva contraseña y limpiar el token y la expiración
   user.contraseña = req.body.contraseña;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
+  // Guardar el usuario actualizado
   await user.save();
 
+  // Enviar el nuevo token al cliente
   sendToken(user, 200, res);
 });
 
 // Obtener detalles del usuario
 const getUserDetails = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
-  const user = await Users.findByPk(id);
 
-  if (!user) {
-    return next(new ErrorHandler(`El usuario no existe con Id: ${id}`, 404));
+  try {
+    // Buscar usuario por ID
+    const user = await Users.findByPk(id);
+
+    // Verificar si el usuario existe
+    if (!user) {
+      return next(new ErrorHandler(`El usuario no existe con Id: ${id}`, 404));
+    }
+
+    // Enviar los detalles del usuario en la respuesta
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(`Error al obtener detalles del usuario: ${error.message}`, 500));
   }
-
-  res.status(200).json({
-    success: true,
-    user,
-  });
 });
 
 // actualizar contraseña
 const updatePassword = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
-  const user = await Users.findOne({
-    where: { id },
-    attributes: { include: ["contraseña"] },
-  });
+  const userId = req.params.id;
 
-  const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
+  try {
+    // Buscar usuario por ID
+    const user = await Users.findByPk(userId, { attributes: { include: ["contraseña"] } });
 
-  if (!isPasswordMatched) {
-    return next(new ErrorHandler("Antigua contraseña es incorrecta", 400));
+    // Verificar si el usuario existe
+    if (!user) {
+      return next(new ErrorHandler(`El usuario no existe con Id: ${userId}`, 404));
+    }
+
+    // Verificar la antigua contraseña
+    const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
+    if (!isPasswordMatched) {
+      return next(new ErrorHandler("Antigua contraseña es incorrecta", 400));
+    }
+
+    // Verificar si las nuevas contraseñas coinciden
+    if (req.body.newPassword !== req.body.confirmPassword) {
+      return next(new ErrorHandler("Las contraseñas no coinciden", 400));
+    }
+
+    // Actualizar la contraseña
+    user.contraseña = req.body.newPassword;
+    await user.save();
+
+    // Enviar nuevo token
+    sendToken(user, 200, res);
+  } catch (error) {
+    // Manejar errores de base de datos u otros errores inesperados
+    return next(new ErrorHandler(`Error al actualizar la contraseña: ${error.message}`, 500));
   }
-
-  if (req.body.newPassword !== req.body.confirmPassword) {
-    return next(new ErrorHandler("Las contraseñas no coinciden", 400));
-  }
-
-  user.contraseña = req.body.newPassword;
-
-  await user.save();
-
-  sendToken(user, 200, res);
 });
 
 // actualizar perfil de usuario
 const updateProfile = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
-  const { avatar_public_id, avatar_secure_url, nombre, apellido, cedula, telefono, email } = req.body;
+  const userId = req.params.id;
+  const { nombre, apellido, cedula, telefono, email, avatar_url } = req.body;
 
-  const updatedUserData = {
-    nombre: nombre,
-    apellido: apellido,
-    cedula: cedula,
-    telefono: telefono,
-    username: username,
-    email: email,
-  };
+  try {
+    // Buscar usuario por ID
+    const user = await Users.findByPk(userId);
 
-  if (avatar_public_id && avatar_secure_url !== "") {
-    const user = await Users.findByPk(id);
-
+    // Verificar si el usuario existe
     if (!user) {
-      return next(new ErrorHandler(`Usuario no encontrado con ID: ${id}`, 404));
+      return next(new ErrorHandler(`Usuario no encontrado con ID: ${userId}`, 404));
     }
 
-    const imageId = user.avatar_public_id;
+    const updatedUserData = {
+      nombre,
+      apellido,
+      cedula,
+      telefono,
+      email,
+      avatar_url: avatar_url || user.avatar_url,
+    };
 
-    await cloudinary.v2.uploader.destroy(imageId);
+    // Si se proporciona una nueva URL de avatar, destruir la imagen antigua y cargar la nueva
+    if (avatar_url) {
+      const imageId = user.avatar_url;
+      await cloudinary.v2.uploader.destroy(imageId);
 
-    const myCloud = await cloudinary.v2.uploader.upload(avatar_public_id, avatar_secure_url, {
-      folder: "avatars",
-      width: 150,
-      crop: "scale",
+      const myCloud = await cloudinary.v2.uploader.upload(avatar_url, {
+        folder: "avatars",
+        width: 150,
+        crop: "scale",
+      });
+
+      updatedUserData.avatar_url = myCloud.secure_url;
+    }
+
+    // Actualizar los datos del usuario
+    await Users.update(updatedUserData, {
+      where: { id: userId },
     });
 
-    updatedUserData.avatar_public_id = myCloud.public_id;
-    updatedUserData.avatar_secure_url = myCloud.secure_url;
+    res.status(200).json({
+      success: true,
+      message: "Datos actualizados correctamente",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(`Error al actualizar el perfil: ${error.message}`, 500));
   }
-
-  // Actualizar los datos del usuario
-  await Users.update(updatedUserData, {
-    where: { id: id },
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "Datos actualizados correctamente",
-  });
 });
 
 // Obtener datos de todos los usuarios(admin)
@@ -255,62 +300,77 @@ const getAllUsers = catchAsyncErrors(async (req, res, next) => {
 // Obtener datos de un usuario (admin)
 const getSingleUser = catchAsyncErrors(async (req, res, next) => {
   const id = req.params.id;
-  const user = await Users.findByPk(id);
+  try {
+    const user = await Users.findByPk(id);
 
-  if (!user) {
-    return next(
-      new ErrorHandler(`El usuario no existe con Id: ${id}`)
-    );
+    if (!user) {
+      return next(
+        new ErrorHandler(`El usuario no existe con Id: ${id}`)
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(`Error al obtener datos del usuario: ${error.message}`, 500));
   }
-
-  res.status(200).json({
-    success: true,
-    user,
-  });
 });
 
 // actualizar rol de un usuario -- Admin
 const updateUserRole = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
-  const { role_id } = req.body;
+  const userId = req.params.id;
+  const { rol_id } = req.body;
 
-  // Verificar si el usuario existe
-  const user = await Users.findByPk(id);
-  if (!user) {
-    return next(new ErrorHandler(`El usuario no existe con Id: ${id}`, 404));
+  try {
+    // Verificar si el usuario existe
+    const user = await Users.findByPk(userId);
+    if (!user) {
+      return next(new ErrorHandler(`El usuario no existe con Id: ${userId}`, 404));
+    }
+
+    // Actualizar el rol del usuario
+    await Users.update({ rol_id }, { where: { id: userId } })
+
+    res.status(200).json({
+      success: true,
+      message: "Rol de usuario actualizado correctamente",
+    });
+  } catch (error) {
+    return next(new ErrorHandler(`Error al actualizar el rol del usuario: ${error.message}`, 500));
   }
-
-  // Actualizar el rol del usuario
-  await Users.update({ role_id }, { where: { id: id } })
-
-  res.status(200).json({
-    success: true,
-    message: "Rol de usuario actualizado correctamente",
-  });
 });
 
 // Eliminar usuario --Admin
 const deleteUser = catchAsyncErrors(async (req, res, next) => {
-  const id = req.params.id;
-  const user = await Users.findByPk(id);
+  const userId = req.params.id;
 
-  if (!user) {
-    return next(
-      new ErrorHandler(`El usuario no existe con Id: ${id}`, 400)
-    );
+  try {
+    const user = await Users.findByPk(userId);
+
+    if (!user) {
+      return next(
+        new ErrorHandler(`El usuario no existe con Id: ${userId}`, 400)
+      );
+    }
+
+    const imageId = user.avatar_url;
+
+    await cloudinary.v2.uploader.destroy(imageId);
+
+    // Eliminar el usuario
+    await Users.destroy({ where: { id: userId } });
+
+    res.status(200).json({
+      success: true,
+      message: "Usuario eliminado correctamente",
+    });
   }
-
-  const imageId = user.avatar_public_id;
-
-  await cloudinary.v2.uploader.destroy(imageId);
-
-  // Eliminar el usuario
-  await Users.destroy({ where: { id: id } });
-
-  res.status(200).json({
-    success: true,
-    message: "Usuario eliminado correctamente",
-  });
+  catch (error) {
+    // Manejar errores de base de datos u otros errores inesperados
+    return next(new ErrorHandler(`Error al eliminar el usuario: ${error.message}`, 500));
+  }
 });
 
 

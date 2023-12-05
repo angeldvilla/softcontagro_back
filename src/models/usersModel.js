@@ -77,6 +77,11 @@ const Users = sequelize.define(
         },
       },
     },
+    avatar_url: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      /* defaultValue: "https://res.cloudinary.com/dxe4igvmq/image/upload/v1701735128/avatars/vq3vfsnac9izn50yvgpw.png" */
+    },
     estado: {
       type: DataTypes.INTEGER,
       allowNull: false,

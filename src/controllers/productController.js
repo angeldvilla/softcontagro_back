@@ -18,6 +18,7 @@ const createProduct = catchAsyncErrors(async (req, res, next) => {
             });
 
             return Image.create({
+                public_id: result.public_id,
                 url: result.secure_url,
                 productId: createdProduct.id,
             });
@@ -85,13 +86,14 @@ const getProductDetails = catchAsyncErrors(async (req, res, next) => {
 
     const images = await Image.findAll({
         where: {
-            producto_id: req.params.id,
+            productId: req.params.id,
         },
     });
 
     res.status(200).json({
         success: true,
         product,
+        images,
     });
 });
 
@@ -111,13 +113,13 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
     // Obtener las imágenes actuales asociadas al producto
     const currentImages = await Image.findAll({
         where: {
-            producto_id: req.params.id,
+            productId: req.params.id,
         },
     });
 
     // Eliminar imágenes actuales de Cloudinary
     await Promise.all(currentImages.map(async (image) => {
-        await cloudinary.v2.uploader.destroy(image.url);
+        await cloudinary.v2.uploader.destroy(image.public_id);
     }));
 
     // Subir y asociar las nuevas imágenes a Cloudinary e Image
@@ -127,8 +129,9 @@ const updateProduct = catchAsyncErrors(async (req, res, next) => {
         });
 
         return Image.create({
+            public_id: result.public_id,    
             url: result.secure_url,
-            producto_id: req.params.id,
+            productId: req.params.id,
         });
     }));
 
@@ -151,19 +154,19 @@ const deleteProduct = catchAsyncErrors(async (req, res, next) => {
     // Obtener las imágenes asociadas al producto
     const productImages = await Image.findAll({
         where: {
-            producto_id: req.params.id,
+            productId: req.params.id,
         },
     });
 
     // Eliminar imágenes de Cloudinary
     await Promise.all(productImages.map(async (image) => {
-        await cloudinary.v2.uploader.destroy(image.url);
+        await cloudinary.v2.uploader.destroy(image.public_id);
     }));
 
     // Eliminar las imágenes de la base de datos
     await Image.destroy({
         where: {
-            producto_id: req.params.id,
+            productId: req.params.id,
         },
     });
 
