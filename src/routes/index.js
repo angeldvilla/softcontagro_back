@@ -1,14 +1,15 @@
 const { Router } = require("express");
 const router = Router();
-const authRoutes = require("./authRoutes");
-const productRoutes = require("./productRoutes");
-const orderRoutes = require("./orderRoutes");
-/* const paymentRoutes = require("./paymentRoutes"); */
+const products = require("./product");
+const auth = require("./auth");
+const payment = require("./payment");
+const order = require("./order");
+const category = require("./category");
 
-//rutas de la api
-router.use("/auth", authRoutes);
-router.use("/product", productRoutes);
-router.use("/orders", orderRoutes);
-/*router.use("/payment", paymentRoutes) */
+router.use("/api/v1", products);
+router.use("/api/v1", auth);
+router.use("/api/v1", payment);
+router.use("/api/v1", order);
+router.use("/api/v1", category);
 
 module.exports = router;

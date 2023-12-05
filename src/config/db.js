@@ -1,12 +1,17 @@
-const { Sequelize } = require("sequelize");
-require('dotenv').config();
-const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
+const mongoose = require("mongoose");
 
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  dialect: "mysql",
-  port: DB_PORT,
-});
-
-module.exports = {
-  sequelize,
+const connectDatabase = () => {
+  mongoose
+    .connect(process.env.DB_LOCAL_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      useCreateIndex: true,
+    })
+    .then((con) => {
+      console.log(
+        `Base de datos MongoDB conectada con HOST: ${con.connection.host}`
+      );
+    });
 };
+
+module.exports = connectDatabase;

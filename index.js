@@ -1,17 +1,12 @@
 require("dotenv").config();
 const { PORT, CLOUDINARY_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } =
   process.env;
-const { sequelize } = require("./src/config/db.js");
+const connectDatabase = require("./src/config/db.js");
 const server = require("./src/app.js");
 const cloudinary = require("cloudinary");
 
 // Conexion a la base de datos
-try {
-  sequelize.authenticate();
-  console.log("Conexión exitosa a la base de datos");
-} catch (error) {
-  console.log("Error de conexión a la base de datos", error);
-}
+connectDatabase();
 
 // Configuración de Cloudinary
 cloudinary.config({

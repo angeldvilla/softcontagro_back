@@ -1,4 +1,3 @@
-require("./config/db");
 const express = require("express");
 const app = express();
 const cookieParser = require("cookie-parser");
@@ -6,7 +5,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const fileUpload = require("express-fileupload");
 const routes = require("./routes/index");
-const errorMiddleware = require("./middleware/error");
+const errorMiddleware = require("./middlewares/errors");
 
 app.name = "API";
 

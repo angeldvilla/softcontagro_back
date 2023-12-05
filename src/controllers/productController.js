@@ -1,189 +1,247 @@
-const Product = require("../models/productModel");
-const Image = require("../models/imageModel");
+const Product = require("../models/product");
+
 const ErrorHandler = require("../utils/errorHandler");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const ApiFeatures = require("../utils/apiFeatures");
+const catchAsyncErrors = require("../middlewares/catchAsyncErrors");
+const APIFeatures = require("../utils/apiFeatures");
 const cloudinary = require("cloudinary");
 
-// Create Product -- Admin
-const createProduct = catchAsyncErrors(async (req, res, next) => {
-    const { images, ...productData } = req.body;
+// Crear nuevo producto   =>   /api/v1/admin/product/new
+exports.newProduct = catchAsyncErrors(async (req, res, next) => {
+  let images = [];
+  if (typeof req.body.images === "string") {
+    images.push(req.body.images);
+  } else {
+    images = req.body.images;
+  }
 
-    const createdProduct = await Product.create(productData);
+  let imagesLinks = [];
 
-    await Promise.all(
-        images.map(async (image) => {
-            const result = await cloudinary.v2.uploader.upload(image, {
-                folder: "products",
-            });
+  for (let i = 0; i < images.length; i++) {
+    const result = await cloudinary.v2.uploader.upload(images[i], {
+      folder: "products",
+    });
 
-            return Image.create({
-                public_id: result.public_id,
-                url: result.secure_url,
-                productId: createdProduct.id,
-            });
-        })
+    imagesLinks.push({
+      public_id: result.public_id,
+      url: result.secure_url,
+    });
+  }
+
+  req.body.images = imagesLinks;
+  req.body.user = req.user.id;
+
+  const product = await Product.create(req.body);
+  res.status(201).json({
+    success: true,
+    message: "Producto creado.",
+    product,
+  });
+});
+
+// Obtener todos los productos  =>   /api/v1/products?keyword=apple
+exports.getProducts = catchAsyncErrors(async (req, res, next) => {
+  const resPerPage = 12;
+  const productsCount = await Product.countDocuments();
+
+  const apiFeatures = new APIFeatures(Product.find(), req.query)
+    .search()
+    .filter();
+
+  let products = await apiFeatures.query;
+  let filteredProductsCount = products.length;
+
+  apiFeatures.pagination(resPerPage);
+  products = await apiFeatures.query;
+
+  res.status(200).json({
+    success: true,
+    productsCount,
+    resPerPage,
+    filteredProductsCount,
+    products,
+  });
+});
+
+// Obtener todos los productos (Admin)  =>   /api/v1/admin/products
+exports.getAdminProducts = catchAsyncErrors(async (req, res, next) => {
+  const products = await Product.find();
+
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
+
+// Obtener el detalle de un producto   =>   /api/v1/product/:id
+exports.getSingleProduct = catchAsyncErrors(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new ErrorHandler("Producto no encontrado", 404));
+  }
+
+  res.status(200).json({
+    success: true,
+    product,
+  });
+});
+
+// Actualizar producto   =>   /api/v1/admin/product/:id
+exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
+  let product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new ErrorHandler("Producto no encontrado", 404));
+  }
+
+  let images = [];
+  if (typeof req.body.images === "string") {
+    images.push(req.body.images);
+  } else {
+    images = req.body.images;
+  }
+
+  if (images !== undefined) {
+    // Eliminar las imagenes asociadas al producto
+    for (let i = 0; i < product.images.length; i++) {
+      const result = await cloudinary.v2.uploader.destroy(
+        product.images[i].public_id
+      );
+    }
+
+    let imagesLinks = [];
+
+    for (let i = 0; i < images.length; i++) {
+      const result = await cloudinary.v2.uploader.upload(images[i], {
+        folder: "products",
+      });
+
+      imagesLinks.push({
+        public_id: result.public_id,
+        url: result.secure_url,
+      });
+    }
+
+    req.body.images = imagesLinks;
+  }
+
+  product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "Producto actualizado.",
+    product,
+  });
+});
+
+// Eliminar producto   =>   /api/v1/admin/product/:id
+exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+
+  if (!product) {
+    return next(new ErrorHandler("Producto no encontrado", 404));
+  }
+
+  // Eliminar las imagenes asociadas al producto
+  for (let i = 0; i < product.images.length; i++) {
+    const result = await cloudinary.v2.uploader.destroy(
+      product.images[i].public_id
     );
+  }
 
-    res.status(201).json({
-        success: true,
-        message: "Producto Creado Correctamente",
-        product: createdProduct,
-    });
+  await product.remove();
+
+  res.status(200).json({
+    success: true,
+    message: "Producto eliminado.",
+  });
 });
 
-// Get All Product
-const getAllProducts = catchAsyncErrors(async (req, res, next) => {
+// Crear Reseña   =>   /api/v1/review
+exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
+  const { rating, comment, productId } = req.body;
 
-    // Productos a mostrar por pagina
-    const resultPerPage = 8;
+  const review = {
+    user: req.user._id,
+    name: req.user.name,
+    rating: Number(rating),
+    comment,
+  };
 
-    // Obtener la cantidad total de productos
-    const productsCount = await Product.count();
+  const product = await Product.findById(productId);
 
-    const apiFeature = new ApiFeatures(Product.findAll(), req.query)
-        .search()
-        .filter();
+  const isReviewed = product.reviews.find(
+    (r) => r.user.toString() === req.user._id.toString()
+  );
 
-    // Obtener los productos después de aplicar búsqueda y filtrado
-    let products = await apiFeature.query;
-
-    // Obtener la cantidad de productos después de aplicar filtrado
-    let filteredProductsCount = products.length;
-
-    // Aplicar paginación
-    apiFeature.pagination(resultPerPage);
-
-    // Obtener los productos después de aplicar paginación
-    products = await apiFeature.query;
-
-    res.status(200).json({
-        success: true,
-        products,
-        productsCount,
-        resultPerPage,
-        filteredProductsCount,
+  if (isReviewed) {
+    product.reviews.forEach((review) => {
+      if (review.user.toString() === req.user._id.toString()) {
+        review.comment = comment;
+        review.rating = rating;
+      }
     });
+  } else {
+    product.reviews.push(review);
+    product.numOfReviews = product.reviews.length;
+  }
+
+  product.ratings =
+    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+    product.reviews.length;
+
+  await product.save({ validateBeforeSave: false });
+
+  res.status(200).json({
+    success: true,
+  });
 });
 
-// Get All Product (Admin)
-const getAdminProducts = catchAsyncErrors(async (req, res, next) => {
-    const products = await Product.findAll();
+// Obtener reseñas de productos   =>   /api/v1/reviews
+exports.getProductReviews = catchAsyncErrors(async (req, res, next) => {
+  const product = await Product.findById(req.query.id);
 
-    res.status(200).json({
-        success: true,
-        products,
-    });
+  res.status(200).json({
+    success: true,
+    reviews: product.reviews,
+  });
 });
 
-// Get Product Details
-const getProductDetails = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByPk(req.params.id);
+// Eliminar reseña de productos   =>   /api/v1/reviews
+exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
+  const product = await Product.findById(req.query.productId);
 
-    if (!product) {
-        return next(new ErrorHandler("Producto no encontrado", 404));
+  console.log(product);
+
+  const reviews = product.reviews.filter(
+    (review) => review._id.toString() !== req.query.id.toString()
+  );
+
+  const numOfReviews = reviews.length;
+
+  const ratings =
+    product.reviews.reduce((acc, item) => item.rating + acc, 0) /
+    reviews.length;
+
+  await Product.findByIdAndUpdate(
+    req.query.productId,
+    {
+      reviews,
+      ratings,
+      numOfReviews,
+    },
+    {
+      new: true,
+      runValidators: true,
+      useFindAndModify: false,
     }
+  );
 
-    const images = await Image.findAll({
-        where: {
-            productId: req.params.id,
-        },
-    });
-
-    res.status(200).json({
-        success: true,
-        product,
-        images,
-    });
+  res.status(200).json({
+    success: true,
+  });
 });
-
-// Update Product -- Admin
-const updateProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByPk(req.params.id);
-
-    if (!product) {
-        return next(new ErrorHandler("Producto no encontrado", 404));
-    }
-
-    // Actualizar el producto con nuevos datos (sin las imágenes)
-    await product.update(req.body, {
-        fields: ['nombre_producto', 'descripcion', 'stock', 'precio', 'estado', 'categoria_id'],
-    });
-
-    // Obtener las imágenes actuales asociadas al producto
-    const currentImages = await Image.findAll({
-        where: {
-            productId: req.params.id,
-        },
-    });
-
-    // Eliminar imágenes actuales de Cloudinary
-    await Promise.all(currentImages.map(async (image) => {
-        await cloudinary.v2.uploader.destroy(image.public_id);
-    }));
-
-    // Subir y asociar las nuevas imágenes a Cloudinary e Image
-    const newImages = await Promise.all(req.body.images.map(async (image) => {
-        const result = await cloudinary.v2.uploader.upload(image, {
-            folder: "products",
-        });
-
-        return Image.create({
-            public_id: result.public_id,    
-            url: result.secure_url,
-            productId: req.params.id,
-        });
-    }));
-
-    res.status(200).json({
-        success: true,
-        message: "Producto Actualizado Correctamente",
-        product: { ...product.toJSON(), images: newImages },
-    });
-});
-
-
-// Delete Product
-const deleteProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByPk(req.params.id);
-
-    if (!product) {
-        return next(new ErrorHandler("Producto no encontrado", 404));
-    }
-
-    // Obtener las imágenes asociadas al producto
-    const productImages = await Image.findAll({
-        where: {
-            productId: req.params.id,
-        },
-    });
-
-    // Eliminar imágenes de Cloudinary
-    await Promise.all(productImages.map(async (image) => {
-        await cloudinary.v2.uploader.destroy(image.public_id);
-    }));
-
-    // Eliminar las imágenes de la base de datos
-    await Image.destroy({
-        where: {
-            productId: req.params.id,
-        },
-    });
-
-    // Eliminar el producto
-    await product.destroy();
-
-    res.status(200).json({
-        success: true,
-        message: "Producto Eliminado Correctamente",
-    });
-});
-
-module.exports = {
-    createProduct,
-    getAllProducts,
-    getProductDetails,
-    getAdminProducts,
-    updateProduct,
-    deleteProduct,
-}
