@@ -11,7 +11,6 @@ const cloudinary = require('cloudinary');
 // Registrar un usuario   => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
-    // Subir avatar a Cloudinary (si está presente)
     const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
         folder: 'avatars',
         width: 150,
@@ -34,8 +33,11 @@ exports.registerUser = catchAsyncErrors(async (req, res, next) => {
 
 })
 
-// Inicio de sesion  =>  /a[i/v1/login
+
+// Inicio de sesion  =>  /api/v1/login
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
+    console.log("Llegó al controlador de login");
+
     const { email, password } = req.body;
 
     // Verificar si el usuario ha proporcionado contraseña y correo electrónico
@@ -106,7 +108,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 // Restablecer contraseña   =>  /api/v1/password/reset/:token
 exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 
-     // crear hash para el token
+    // crear hash para el token
     const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex')
 
     const user = await User.findOne({
