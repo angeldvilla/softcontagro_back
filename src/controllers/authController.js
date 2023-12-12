@@ -10,57 +10,77 @@ const cloudinary = require('cloudinary');
 
 // Registrar un usuario   => /api/v1/register
 exports.registerUser = catchAsyncErrors(async (req, res, next) => {
+    try {
+        const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
+            folder: 'avatars',
+            width: 150,
+            crop: "scale"
+        });
 
-    const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: 'avatars',
-        width: 150,
-        crop: "scale"
-    })
+        const { name, email, password } = req.body;
 
-    const { name, email, password } = req.body;
+        const user = await User.create({
+            name,
+            email,
+            password,
+            avatar: {
+                public_id: result.public_id,
+                url: result.secure_url
+            }
+        });
 
-    const user = await User.create({
-        name,
-        email,
-        password,
-        avatar: {
-            public_id: result.public_id,
-            url: result.secure_url
-        }
-    })
-
-    sendToken(user, 200, res)
-
-})
+        res.status(201).json({
+            success: true,
+            message: 'Registro exitoso',
+            user
+        });
+    } catch (error) {
+        console.error("Error en el controlador de registro:", error);
+        res.status(500).json({
+            success: false,
+            message: 'Error al registrar el usuario',
+        });
+    }
+});
 
 
 // Inicio de sesion  =>  /api/v1/login
 exports.loginUser = catchAsyncErrors(async (req, res, next) => {
-    console.log("Llegó al controlador de login");
+    try {
+        const { email, password } = req.body;
 
-    const { email, password } = req.body;
+        const user = await User.findOne({ email }).select('+password');
 
-    // Verificar si el usuario ha proporcionado contraseña y correo electrónico
-    if (!email || !password) {
-        return next(new ErrorHandler('Please enter email & password', 400))
+        console.log("Usuario encontrado:", user);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Correo electrónico o contraseña no válidos',
+            });
+        }
+
+        const isPasswordMatched = await user.comparePassword(password);
+
+        console.log("Contraseña coincidente:", isPasswordMatched);
+
+        if (!isPasswordMatched) {
+            return res.status(401).json({
+                success: false,
+                message: 'Correo electrónico o contraseña no válidos',
+            });
+        }
+        sendToken(user, 200, res);
+    } catch (error) {
+        console.error("Error en el controlador de login:", error);
+        res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+        });
     }
+});
 
-    // Buscar el usuario en la base de datos
-    const user = await User.findOne({ email }).select('+password')
 
-    if (!user) {
-        return next(new ErrorHandler('Invalid Email or Password', 401));
-    }
-
-    // Verificar si la contraseña es correcta
-    const isPasswordMatched = await user.comparePassword(password);
-
-    if (!isPasswordMatched) {
-        return next(new ErrorHandler('Invalid Email or Password', 401));
-    }
-
-    sendToken(user, 200, res)
-})
 
 // Recuperar Contraseña   =>  /api/v1/password/forgot
 exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
@@ -68,7 +88,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-        return next(new ErrorHandler('User not found with this email', 404));
+        return next(new ErrorHandler('Usuario no encontrado con este correo electrónico', 404));
     }
 
     // Generar y obtener token
