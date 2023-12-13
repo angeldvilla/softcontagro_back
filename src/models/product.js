@@ -34,10 +34,11 @@ const productSchema = new mongoose.Schema({
     },
   ],
   category: {
-    type: String,
+    type: mongoose.Schema.ObjectId,
+    ref: "Category",
     required: [true, "Por favor seleccione la categoría para este producto"],
-    message: "Por favor seleccione la categoría correcta para el producto",
   },
+
   seller: {
     type: String,
     required: [true, "Por favor ingresa al vendedor del producto"],

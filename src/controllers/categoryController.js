@@ -6,31 +6,31 @@ const cloudinary = require("cloudinary");
 
 // Crear nueva categoria   =>   /api/v1/admin/category/new
 exports.newCategory = catchAsyncErrors(async (req, res, next) => {
-  let images = [];
-  if (typeof req.body.images === "string") {
-    images.push(req.body.images);
-  } else {
-    images = req.body.images;
-  }
+  let images = req.body.images || [];
 
   let imagesLinks = [];
 
-  for (let i = 0; i < images.length; i++) {
-    const result = await cloudinary.v2.uploader.upload(images[i], {
-      folder: "category",
-    });
+  if (images.length > 0) {
+    for (let i = 0; i < images.length; i++) {
+      const result = await cloudinary.v2.uploader.upload(images[i], {
+        folder: "category",
+      });
 
-    imagesLinks.push({
-      public_id: result.public_id,
-      url: result.secure_url,
-    });
+      imagesLinks.push({
+        public_id: result.public_id,
+        url: result.secure_url,
+      });
+    }
   }
 
   req.body.images = imagesLinks;
 
   const category = await Category.create(req.body);
   if (!category) {
-    return next(new ErrorHandler("User not found with this email", 404));
+    return res.status(404).json({
+      success: false,
+      message: "Usuario no encontrado con este correo",
+    })
   }
   res.status(201).json({
     success: true,

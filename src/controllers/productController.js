@@ -7,35 +7,41 @@ const cloudinary = require("cloudinary");
 
 // Crear nuevo producto   =>   /api/v1/admin/product/new
 exports.newProduct = catchAsyncErrors(async (req, res, next) => {
-  let images = [];
-  if (typeof req.body.images === "string") {
-    images.push(req.body.images);
-  } else {
-    images = req.body.images;
-  }
+  try {
+    let images = req.body.images || [];
 
-  let imagesLinks = [];
+    let imagesLinks = [];
 
-  for (let i = 0; i < images.length; i++) {
-    const result = await cloudinary.v2.uploader.upload(images[i], {
-      folder: "products",
+    if (images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        const result = await cloudinary.v2.uploader.upload(images[i], {
+          folder: "products",
+        });
+
+        imagesLinks.push({
+          public_id: result.public_id,
+          url: result.secure_url,
+        });
+      }
+    }
+
+    req.body.images = imagesLinks;
+    /* req.body.user = req.user.id; */
+
+    const product = await Product.create(req.body);
+    res.status(201).json({
+      success: true,
+      message: "Producto creado.",
+      product,
     });
-
-    imagesLinks.push({
-      public_id: result.public_id,
-      url: result.secure_url,
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor.",
+      error: error.message,
     });
   }
-
-  req.body.images = imagesLinks;
-  req.body.user = req.user.id;
-
-  const product = await Product.create(req.body);
-  res.status(201).json({
-    success: true,
-    message: "Producto creado.",
-    product,
-  });
 });
 
 // Obtener todos los productos  =>   /api/v1/products?keyword=apple
