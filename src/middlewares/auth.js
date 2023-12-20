@@ -7,7 +7,7 @@ const catchAsyncErrors = require("./catchAsyncErrors");
 // Comprueba si el usuario está autenticado o no
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
 
-    const { token } = req.cookies
+    const token = req.cookies.token
 
     if (!token) {
         return res.status(401).json({
@@ -16,10 +16,16 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
         })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    req.user = await User.findById(decoded.id);
-
-    next()
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = await User.findById(decoded.id);
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: 'Token inválido. Inicie sesión primero para acceder a este recurso.'
+        });
+    }
 })
 
 // Manejo de roles de usuarios

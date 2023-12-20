@@ -248,7 +248,7 @@ exports.logout = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Logged out'
+        message: 'Sesión cerrada'
     })
 })
 
@@ -297,7 +297,8 @@ exports.updateUser = catchAsyncErrors(async (req, res, next) => {
     })
 
     res.status(200).json({
-        success: true
+        success: true,
+        message: "Usuario actualizado"
     })
 })
 
@@ -320,5 +321,6 @@ exports.deleteUser = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
+        message: 'Usuario eliminado'
     })
 })

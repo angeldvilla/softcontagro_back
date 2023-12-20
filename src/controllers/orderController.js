@@ -60,36 +60,43 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
 
 // Iniciar sesión en pedidos de usuarios   =>   /api/v1/orders/me
 exports.myOrders = catchAsyncErrors(async (req, res, next) => {
-  const orders = await Order.find({ user: req.user.id });
-
-  res.status(200).json({
-    success: true,
-    orders,
-  });
+  try {
+    const userId = req.params.id;
+    const orders = await Order.find({ user: userId });
+    res.status(200).json({ success: true, orders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'No se encontraron pedidos' });
+  }
 });
 
 // Obtener todos los pedidos - ADMIN  =>   /api/v1/admin/orders/
 exports.allOrders = catchAsyncErrors(async (req, res, next) => {
-  const orders = await Order.find();
+  try {
 
-  let totalAmount = 0;
+    const orders = await Order.find();
 
-  orders.forEach((order) => {
-    totalAmount += order.totalPrice;
-  });
+    let totalAmount = 0;
 
-  res.status(200).json({
-    success: true,
-    totalAmount,
-    orders,
-  });
+    orders.forEach((order) => {
+      totalAmount += order.totalPrice;
+    });
+
+    res.status(200).json({
+      success: true,
+      totalAmount,
+      orders,
+    });
+  } catch {
+    res.status(500).json({ success: false, error: 'No se encontraron pedidos' });
+  }
 });
 
 // Actualizar / Procesar pedido - ADMIN  =>   /api/v1/admin/order/:id
 exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
-  if (order.orderStatus === "Entregado") {
+  if (order.orderStatus === "succeeded") {
     return res.status(400).json({
       success: false,
       message: "Ya has entregado este pedido",
