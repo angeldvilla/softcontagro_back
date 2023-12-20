@@ -88,7 +88,10 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findOne({ email: req.body.email });
 
     if (!user) {
-        return next(new ErrorHandler('Usuario no encontrado con este correo electrónico', 404));
+        return res.status(404).json({
+            success: false,
+            message: 'Usuario no encontrado con este correo electrónico',
+        })
     }
 
     // Generar y obtener token
@@ -120,7 +123,10 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
         await user.save({ validateBeforeSave: false });
 
-        return next(new ErrorHandler(error.message, 500))
+        return res.status(500).json({
+            success: false,
+            message: 'Error interno del servidor',
+        })
     }
 
 })
@@ -137,11 +143,17 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
     })
 
     if (!user) {
-        return next(new ErrorHandler('El token de restablecimiento de contraseña no es válido o ha caducado', 400))
+        return res.status(400).json({
+            success: false,
+            message: 'El token de restablecimiento de contraseña no es válido o ha caducado',
+        })
     }
 
     if (req.body.password !== req.body.confirmPassword) {
-        return next(new ErrorHandler('Las contraseñas no coinciden', 400))
+        return res.status(400).json({
+            success: false,
+            message: 'Las contraseñas no coinciden',
+        })
     }
 
     // Configurar nueva contraseña
@@ -175,7 +187,10 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
     //Verifica la contraseña del usuario anterior
     const isMatched = await user.comparePassword(req.body.oldPassword)
     if (!isMatched) {
-        return next(new ErrorHandler('Old password is incorrect'));
+        return res.status(500).json({
+            success: false,
+            message: 'Contraseña incorrecta',
+        })
     }
 
     user.password = req.body.password;
@@ -255,7 +270,10 @@ exports.getUserDetails = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorHandler(`User does not found with id: ${req.params.id}`))
+        return res.status(400).json({
+            success: false,
+            message: `Usuario no encontrado con el ID: ${req.params.id}`,
+        })
     }
 
     res.status(200).json({
@@ -288,7 +306,10 @@ exports.deleteUser = catchAsyncErrors(async (req, res, next) => {
     const user = await User.findById(req.params.id);
 
     if (!user) {
-        return next(new ErrorHandler(`User does not found with id: ${req.params.id}`))
+        return res.status(400).json({
+            success: false,
+            message: `Usuario no encontrado con el ID: ${req.params.id}`,
+        })
     }
 
     // Eliminar avatar de Cloudinary

@@ -83,7 +83,10 @@ exports.getSingleProduct = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    return next(new ErrorHandler("Producto no encontrado", 404));
+    res.status(404).json({
+      success: false,
+      message: "Producto no encontrado",
+    })
   }
 
   res.status(200).json({
@@ -97,7 +100,10 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
   let product = await Product.findById(req.params.id);
 
   if (!product) {
-    return next(new ErrorHandler("Producto no encontrado", 404));
+    res.status(404).json({
+      success: false,
+      message: "Producto no encontrado",
+    })
   }
 
   let images = [];
@@ -149,7 +155,10 @@ exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   if (!product) {
-    return next(new ErrorHandler("Producto no encontrado", 404));
+    res.status(404).json({
+      success: false,
+      message: "Producto no encontrado",
+    })
   }
 
   // Eliminar las imagenes asociadas al producto

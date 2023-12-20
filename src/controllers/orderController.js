@@ -14,9 +14,10 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     shippingPrice,
     totalPrice,
     paymentInfo,
+    paidAt,
+    deliveredAt,
+    user
   } = req.body;
-
-  console.log(req.body);
 
   const order = await Order.create({
     orderItems,
@@ -26,8 +27,9 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     shippingPrice,
     totalPrice,
     paymentInfo,
-    paidAt: Date.now(),
-    user: req.user._id,
+    paidAt,
+    deliveredAt,
+    user
   });
 
   res.status(200).json({
@@ -44,7 +46,10 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   );
 
   if (!order) {
-    return next(new ErrorHandler("No se encontró ningún pedido con este ID", 404));
+    return res.status(404).json({
+      success: false,
+      message: "No se encontró pedido con este ID",
+    })
   }
 
   res.status(200).json({
@@ -85,7 +90,10 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
   if (order.orderStatus === "Entregado") {
-    return next(new ErrorHandler("Ya has entregado este pedido", 400));
+    return res.status(400).json({
+      success: false,
+      message: "Ya has entregado este pedido",
+    })
   }
 
   order.orderItems.forEach(async (item) => {
@@ -114,7 +122,10 @@ exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
   if (!order) {
-    return next(new ErrorHandler("No se encontró ningún pedido con este ID", 404));
+    return res.status(404).json({
+      success: false,
+      message: "No se encontró pedido con este ID",
+    })
   }
 
   await order.remove();

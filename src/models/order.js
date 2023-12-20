@@ -59,7 +59,6 @@ const orderSchema = mongoose.Schema({
         },
         status: {
             type: String,
-            default: "Pendiente"
         }
     },
     paidAt: {

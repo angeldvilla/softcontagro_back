@@ -29,7 +29,7 @@ exports.newCategory = catchAsyncErrors(async (req, res, next) => {
   if (!category) {
     return res.status(404).json({
       success: false,
-      message: "Usuario no encontrado con este correo",
+      message: "Categoria no encontrada",
     })
   }
   res.status(201).json({
@@ -53,13 +53,16 @@ exports.deleteCategory = catchAsyncErrors(async (req, res, next) => {
   const category = await Category.findById(req.params.genreID);
 
   if (!category) {
-    return next(new ErrorHandler("Product not found", 404));
+    return res.status(404).json({
+      success: false,
+      message: "Categoria no encontrada",
+    })
   }
 
   await category.remove();
 
   res.status(200).json({
     success: true,
-    message: "Product is deleted.",
+    message: "Categoria eliminada.",
   });
 });
