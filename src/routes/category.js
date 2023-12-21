@@ -6,7 +6,7 @@ const {
   getCategory,
   deleteCategory,
 } = require("../controllers/categoryController");
-const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth");
+/* const { isAuthenticatedUser, authorizeRoles } = require("../middlewares/auth"); */
 
 router.route("/admin/category/new").post(newCategory);
 router.route("/genres").get(getCategory);
