@@ -201,42 +201,52 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
 })
 
 
-// Actualizar perfil de usuario   =>   /api/v1/me/update
+// Actualizar perfil de usuario   =>   /api/v1/me/update/id
 exports.updateProfile = catchAsyncErrors(async (req, res, next) => {
     const newUserData = {
         name: req.body.name,
-        email: req.body.email
+        email: req.body.email,
     }
 
-    // Update avatar
-    if (req.body.avatar !== '') {
-        const user = await User.findById(req.user.id)
+    try {
+        if (req.body.avatar !== '') {
+            const user = await User.findById(req.params.id);
 
-        const image_id = user.avatar.public_id;
-        const res = await cloudinary.v2.uploader.destroy(image_id);
+            const image_id = user.avatar.public_id;
+            await cloudinary.v2.uploader.destroy(image_id);
 
-        const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
-            folder: 'avatars',
-            width: 150,
-            crop: "scale"
+            const result = await cloudinary.v2.uploader.upload(req.body.avatar, {
+                folder: 'avatars',
+                width: 150,
+                crop: "scale"
+            })
+
+            newUserData.avatar = {
+                public_id: result.public_id,
+                url: result.secure_url
+            }
+        }
+
+        const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
+            new: true,
+            runValidators: true,
+            useFindAndModify: false
         })
 
-        newUserData.avatar = {
-            public_id: result.public_id,
-            url: result.secure_url
-        }
+        res.status(200).json({
+            success: true,
+            message: "Perfil de Usuario actualizado",
+            user
+        });
+    } catch (error) {
+        console.error("Error al actualizar el perfil:", error);
+        res.status(500).json({
+            success: false,
+            message: "Hubo un error al actualizar el perfil. Por favor, inténtalo de nuevo más tarde."
+        });
     }
-
-    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
-        new: true,
-        runValidators: true,
-        useFindAndModify: false
-    })
-
-    res.status(200).json({
-        success: true
-    })
 })
+
 
 
 // Cerrar Sesión   =>   /api/v1/logout
@@ -321,6 +331,7 @@ exports.deleteUser = catchAsyncErrors(async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        message: 'Usuario eliminado'
+        message: 'Usuario eliminado',
+        user
     })
 })
