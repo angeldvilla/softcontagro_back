@@ -5,12 +5,12 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: [true, "Por favor ingrese el nombre del producto"],
     trim: true,
-    maxLength: [100, "El nombre del producto no puede exceder los 100 caracteres."],
+    maxLength: [100, "El nombre del producto no puede exceder los 100 caracteres"],
   },
   price: {
     type: Number,
     required: [true, "Por favor ingrese el precio del producto"],
-    maxLength: [100, "El nombre del producto no puede exceder los 5 caracteres."],
+    maxLength: [100, "El nombre del producto no puede exceder los 5 caracteres"],
     default: 0.0,
   },
   description: {
@@ -46,7 +46,7 @@ const productSchema = new mongoose.Schema({
   stock: {
     type: Number,
     required: [true, "Por favor ingrese el stock del producto"],
-    maxLength: [100, "El nombre del producto no puede exceder los 5 caracteres."],
+    maxLength: [100, "El nombre del producto no puede exceder los 5 caracteres"],
     default: 0,
   },
   numOfReviews: {
