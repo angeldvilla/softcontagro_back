@@ -48,7 +48,7 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
   if (!order) {
     return res.status(404).json({
       success: false,
-      message: "No se encontró pedido con este ID",
+      message: "No se encontró un pedido con este ID",
     })
   }
 
@@ -99,7 +99,7 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   if (order.orderStatus === "succeeded") {
     return res.status(400).json({
       success: false,
-      message: "Ya has entregado este pedido",
+      message: "Ya se ha entregado este pedido",
     })
   }
 
@@ -131,7 +131,7 @@ exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
   if (!order) {
     return res.status(404).json({
       success: false,
-      message: "No se encontró pedido con este ID",
+      message: "No se encontró un pedido con este ID",
     })
   }
 
