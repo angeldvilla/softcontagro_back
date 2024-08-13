@@ -12,7 +12,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     if (!token) {
         return res.status(401).json({
             success: false,
-            message: 'Inicie sesión primero para acceder a este recurso.'
+            message: 'Inicie sesión primero para acceder a este recurso'
         })
     }
 
@@ -23,7 +23,7 @@ exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
     } catch (error) {
         return res.status(401).json({
             success: false,
-            message: 'Token inválido. Inicie sesión primero para acceder a este recurso.'
+            message: 'Token inválido. Inicie sesión primero para acceder a este recurso'
         });
     }
 })
