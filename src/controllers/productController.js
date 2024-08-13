@@ -31,14 +31,14 @@ exports.newProduct = catchAsyncErrors(async (req, res, next) => {
     const product = await Product.create(req.body);
     res.status(201).json({
       success: true,
-      message: "Producto creado.",
+      message: "Producto creado",
       product,
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
       success: false,
-      message: "Error interno del servidor.",
+      message: "Error interno del servidor",
       error: error.message,
     });
   }
@@ -145,7 +145,7 @@ exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "Producto actualizado.",
+    message: "Producto actualizado",
     product,
   });
 });
@@ -172,7 +172,7 @@ exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    message: "Producto eliminado.",
+    message: "Producto eliminado",
   });
 });
 
