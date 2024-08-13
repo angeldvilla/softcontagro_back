@@ -9,7 +9,7 @@ const connectDatabase = () => {
     })
     .then((con) => {
       console.log(
-        `Base de datos MongoDB conectada con HOST: ${con.connection.host}`
+        `Db Conectada: ${con.connection.host}`
       );
     });
 };
